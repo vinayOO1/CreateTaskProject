@@ -1,0 +1,37 @@
+# this docker file is used for PRODUCTION.
+# DO NOT EDIT WITHOUT APPROVAL
+
+services:
+  # service for celery-worker to run tasks
+  prod_celery_worker:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+
+    command: celery -A RupyzCeleryTasks worker -l info --autoscale=4,0
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+      mode: replicated
+      replicas: 2
+    volumes:
+      - ./:/app
+    env_file:
+      - ./dev.env
+
+  # # service for celery-beat to run scheduled tasks
+  prod_celery_beat:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+
+    command: celery -A RupyzCeleryTasks beat -l info
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 3s
+    volumes:
+      - ./:/app
+    env_file:
+      - ./dev.env
